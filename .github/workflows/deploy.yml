@@ -9,6 +9,7 @@ on:
 jobs:
   DEV:
     runs-on: self-hosted
+    environment: DEV
     steps:
       - name: Checkout helm repo
         uses: actions/checkout@v4
@@ -21,18 +22,21 @@ jobs:
 
   QA:
     runs-on: self-hosted
+    environment: QA
     needs: DEV
     steps:
       - run: echo QA
 
   UAT:
     runs-on: self-hosted
+    environment: UAT
     needs: QA
     steps:
       - run: echo UAT
 
   PROD:
     runs-on: self-hosted
+    environment: PROD
     needs: UAT
     steps:
       - run: echo PROD
