@@ -9,6 +9,10 @@ on:
       appType:
         required: true
         type: string
+    secrets:
+      VAULT_TOKEN:
+        required: true
+
 jobs:
   code-checkout:
     runs-on: self-hosted
@@ -31,18 +35,27 @@ jobs:
           elif [ ${{ inputs.appType }} == python ]; then
             pip3 install -r requirements.txt
           fi
-  
+    
 
-  static-code-analysis:
+  code-quality:
     runs-on: self-hosted
     needs: app-dependencies
     steps:
-      - name: Download Dependency
-        run: ls -l
+      - name: Retrieve Vault Secrets
+        id: import-secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: http://vault-internal.azdevopsv82.online:8200
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: |
+            infra/github-actions *;
+      - name: Code submit sonar scanner
+        run: |
+          /opt/sonar-scanner-6.2.1.4610-linux-x64/bin/sonar-scanner -Dsonar.host.url=http://sonarqube-internal.azdevopsv82.online:9000 -Dsonar.token=${{ steps.import-secrets.outputs.sonar_token }} -Dsonar.projectKey=${{ inputs.component }} -Dsonar.qualitygate.wait=true
 
   unit-tests:
     runs-on: self-hosted
-    needs: static-code-analysis
+    needs: code-quality
     steps:
       - name: Download Dependency
         run: ls -l
