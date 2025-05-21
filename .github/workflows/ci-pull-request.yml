@@ -21,6 +21,7 @@ jobs:
         with:
           repository: VenkatBheemireddyOrg/roboshop-${{ inputs.component }}
 
+
   app-dependencies:
     runs-on: self-hosted
     needs: code-checkout
@@ -34,6 +35,26 @@ jobs:
           fi
           # Python we are ignoring as downloading dependencies is of no use in CI.
 
+  code-quality:
+    runs-on: self-hosted
+    needs: app-dependencies
+    steps:
+      - name: Retrieve Vault Secrets
+        id: import-secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: http://vault-internal.azdevopsv82.online:8200
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: |
+            infra/github-actions *;
+      - name: Code submit sonar scanner
+        run: |
+          if [ ${{ inputs.appType }} == maven ]; then
+            echo /opt/sonar-scanner-6.2.1.4610-linux-x64/bin/sonar-scanner -Dsonar.host.url=http://sonarqube-internal.azdevopsv82.online:9000 -Dsonar.token=${{ steps.import-secrets.outputs.sonar_token }} -Dsonar.projectKey=${{ inputs.component }} -Dsonar.qualitygate.wait=true -Dsonar.java.binaries=./target
+          else
+            echo /opt/sonar-scanner-6.2.1.4610-linux-x64/bin/sonar-scanner -Dsonar.host.url=http://sonarqube-internal.azdevopsv82.online:9000 -Dsonar.token=${{ steps.import-secrets.outputs.sonar_token }} -Dsonar.projectKey=${{ inputs.component }} -Dsonar.qualitygate.wait=true
+          fi
+
   unit-tests:
     runs-on: self-hosted
     needs: code-quality
@@ -42,8 +63,8 @@ jobs:
         run: |
           if [ ${{ inputs.appType }} == maven ]; then
             echo mvn test
-          elif [ ${{ inputs.appType }} == nodejs ];then
+          elif [ ${{ inputs.appType }} == nodejs ]; then
             echo npm test
-          elif [ ${{ inputs.appType }} == python ];then
+          elif [ ${{ inputs.appType }} == python ]; then
             echo python -m unittest
           fi
