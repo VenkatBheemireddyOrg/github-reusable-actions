@@ -32,8 +32,6 @@ jobs:
             mvn clean package
           elif [ ${{ inputs.appType }} == nodejs ]; then
             npm install
-          elif [ ${{ inputs.appType }} == python ]; then
-            pip3 install -r requirements.txt
           fi
     
 
@@ -51,14 +49,25 @@ jobs:
             infra/github-actions *;
       - name: Code submit sonar scanner
         run: |
-          /opt/sonar-scanner-6.2.1.4610-linux-x64/bin/sonar-scanner -Dsonar.host.url=http://sonarqube-internal.azdevopsv82.online:9000 -Dsonar.token=${{ steps.import-secrets.outputs.sonar_token }} -Dsonar.projectKey=${{ inputs.component }} -Dsonar.qualitygate.wait=true
-
+          if [ ${{ inputs.appType }} == maven ]; then
+             /opt/sonar-scanner-6.2.1.4610-linux-x64/bin/sonar-scanner -Dsonar.host.url=http://sonarqube-internal.azdevopsv82.online:9000 -Dsonar.token=${{ steps.import-secrets.outputs.sonar_token }} -Dsonar.projectKey=${{ inputs.component }} -Dsonar.qualitygate.wait=true -Dsonar.java.binaries=./target
+          elif [ ${{ inputs.appType }} == nodejs ]; then
+             /opt/sonar-scanner-6.2.1.4610-linux-x64/bin/sonar-scanner -Dsonar.host.url=http://sonarqube-internal.azdevopsv82.online:9000 -Dsonar.token=${{ steps.import-secrets.outputs.sonar_token }} -Dsonar.projectKey=${{ inputs.component }} -Dsonar.qualitygate.wait=true
+          fi
+          
   unit-tests:
     runs-on: self-hosted
     needs: code-quality
     steps:
-      - name: Download Dependency
+      - name: Unit Tests
         run: ls -l
+          if [ ${{ inputs.appType }} == maven ]; then
+             echo mvn test
+          elif [ ${{ inputs.appType }} == nodejs ]; then
+             echo npm test
+          elif [ ${{ inputs.appType }} == python ]; then
+             echo python -m unittest 
+          fi
 
   build-container-image:
     runs-on: self-hosted
