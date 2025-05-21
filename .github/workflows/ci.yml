@@ -60,7 +60,7 @@ jobs:
     needs: code-quality
     steps:
       - name: Unit Tests
-        run: ls -l
+        run: | 
           if [ ${{ inputs.appType }} == maven ]; then
              echo mvn test
           elif [ ${{ inputs.appType }} == nodejs ]; then
