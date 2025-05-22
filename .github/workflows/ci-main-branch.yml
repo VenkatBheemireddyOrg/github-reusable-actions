@@ -41,8 +41,8 @@ jobs:
     needs: app-dependencies
     steps:
       - name: Build Image
+      # run: env
         run: |
-          env
           docker build -t roboshopb82.azurecr.io/roboshop-${{ inputs.component }}:${GITHUB_SHA}
 
   push-to-image-registry:
