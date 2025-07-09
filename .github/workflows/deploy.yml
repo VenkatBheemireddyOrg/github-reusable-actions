@@ -7,38 +7,46 @@ on:
         required: true
         type: string
 jobs:
-  DEV:
+  code-checkout:
     runs-on: self-hosted
-    environment: DEV
     steps:
       - name: Checkout helm repo
         uses: actions/checkout@v4
         with:
           repository: VenkatBheemireddyOrg/roboshop-helm
-      - run: |
+
+  DEV:
+    runs-on: self-hosted
+    environment: DEV
+    needs: code-checkout
+    steps:
+      - name: DEV Deployment
+        run: |
           echo $PATH
           bash argocd.sh ${{ inputs.component }} dev roboshopb82.azurecr.io/roboshop-${{ inputs.component }}:${GITHUB_SHA}
-        name: Deployment
 
   QA:
     runs-on: self-hosted
     environment: QA
     needs: DEV
     steps:
-      - run: echo QA
+     - name: QA Deployment
+       run: echo QA
 
   UAT:
     runs-on: self-hosted
     environment: UAT
     needs: QA
     steps:
-      - run: echo UAT
+      - name: UAT Deployment
+        run: echo UAT
 
   PROD:
     runs-on: self-hosted
     environment: PROD
     needs: UAT
     steps:
-      - run: echo PROD
+      - name: PROD Deployment
+        run: echo PROD
 
 
