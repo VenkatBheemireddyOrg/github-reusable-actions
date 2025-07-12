@@ -23,7 +23,6 @@ jobs:
       - name: DEV Deployment
         run: |
           echo $PATH
-          echo ${GITHUB_SHA}
           bash argocd.sh ${{ inputs.component }} dev roboshopb82.azurecr.io/roboshop-${{ inputs.component }}:${GITHUB_SHA}
 
   QA:
